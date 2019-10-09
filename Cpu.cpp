@@ -125,8 +125,7 @@ Cpu::~Cpu(void)
 void			Cpu::saveState(void) const
 {
 	FILE			*state = nullptr;
-	char			**vram = nullptr;
-	unsigned char	i;
+	char			*vram = nullptr;
 	std::string		fileName(this->_romName + ".sav");
 
 	state = fopen(fileName.c_str(), "wb");
@@ -151,10 +150,7 @@ void			Cpu::saveState(void) const
 	vram = this->_renderer->GetScreen();
 	if (vram)
 	{
-		for (i = 0; i < 64; i++)
-			fwrite(vram[i], sizeof(char) * 32, 1, state);
-		for (i = 0; i < 64; i++)
-			free(vram[i]);
+		fwrite(vram, sizeof(char) * 64 * 32, 1, state);
 		free(vram);
 	}
 	else
@@ -166,8 +162,7 @@ void			Cpu::saveState(void) const
 void			Cpu::loadState(void)
 {
 	FILE			*state = nullptr;
-	char			**vram = nullptr;
-	unsigned char	i;
+	char			*vram = nullptr;
 	std::string		fileName(this->_romName + ".sav");
 
 	state = fopen(fileName.c_str(), "rb");
@@ -190,19 +185,11 @@ void			Cpu::loadState(void)
 	fread(&this->_mask[0], sizeof(unsigned short) * (NB_OPCODES), 1, state);
 	fread(&this->_id[0], sizeof(unsigned short) * (NB_OPCODES), 1, state);
 	//Load screen
-	vram = (char **)malloc(sizeof(char *) * 64);
+	vram = (char*)malloc(sizeof(char) * 64 * 32);
 	if (vram)
 	{
-		for (i = 0; i < 64; i++)
-		{
-			vram[i] = (char *)malloc(sizeof(char) * 32);
-			if (!vram[i])
-				std::cerr << "Error while setting a line of screen." << std::endl;
-			fread(vram[i], sizeof(char) * 32, 1, state);
-		}
+		fread(vram, sizeof(char) * 64 * 32, 1, state);
 		this->_renderer->SetScreen(vram);
-		for (i = 0; i < 64; i++)
-			free(vram[i]);
 		free(vram);
 	}
 	else

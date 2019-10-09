@@ -19,8 +19,8 @@ class   SFMLRenderer final : public IRender
 		void              UpdateScreen() override;
 		void              SetPixel(uint8_t _x, uint8_t _y, uint8_t _color) override;
 		unsigned char     GetPixelColor(uint8_t _x, uint8_t _y) const override;
-		char**            GetScreen() const override;
-		void              SetScreen(char** _vram) override;
+		char*             GetScreen() const override;
+		void              SetScreen(char* _vram) override;
 
 	private:
         inline constexpr uint16_t    GetFlatArrayIndex(uint8_t _x, uint8_t _y) const;

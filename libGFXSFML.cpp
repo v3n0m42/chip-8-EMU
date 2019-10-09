@@ -60,28 +60,22 @@ SFMLRenderer::~SFMLRenderer()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-char**  SFMLRenderer::GetScreen() const
+char*   SFMLRenderer::GetScreen() const
 {
-    //NOCOMMIT
-	/*char** const screen = (char **)malloc(sizeof(char *) * 64);
+	char* const   screen = (char*)malloc(sizeof(char) * s_pixelCount);
 	if (!screen)
 		return nullptr;
-	for (uint8_t i = 0; i < 64; i++)
-	{
-		screen[i] = (char *)malloc(sizeof(char) * 32);
-		if (!screen[i])
-			return nullptr;
-		memcpy(screen[i], m_pixels[i], 32);
-	}
-	return screen;*/
-    return nullptr;
+	for (uint16_t pixel = 0; pixel < s_pixelCount; pixel++)
+        screen[pixel] = m_pixels[pixel * s_componentsPerPixel];
+	return screen;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void    SFMLRenderer::SetScreen(char** _vram)
+void    SFMLRenderer::SetScreen(char* _vram)
 {
-    memcpy(m_pixels, _vram, s_renderTargetSize);
+    for (uint16_t pixel = 0; pixel < s_renderTargetSize / s_componentsPerPixel; pixel++)
+        memset(m_pixels + (pixel * s_componentsPerPixel), _vram[pixel], s_componentsPerPixel);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
