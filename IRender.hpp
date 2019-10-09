@@ -1,20 +1,16 @@
 #ifndef IRENDER_HPP
 # define IRENDER_HPP
 
-# define BLACK					0
-# define WHITE					1
-
-class	IRender
+class   IRender
 {
-	public:
-		virtual					~IRender(void) {}
-		virtual void			drawPixel(unsigned char x, unsigned char y) = 0;
-		virtual void			clearScreen(void) = 0;
-		virtual void			updateScreen(void) = 0;
-		virtual void			setPixel(unsigned char x, unsigned char y, unsigned char color) = 0;
-		virtual unsigned char	getPixelColor(unsigned char x, unsigned char y) const = 0;
-		virtual char			**getScreen(void) const = 0;
-		virtual void			setScreen(char **vram) = 0;
+    public:
+        virtual             ~IRender() {}
+        virtual void        ClearScreen() = 0;
+        virtual void        UpdateScreen() = 0;
+        virtual void        SetPixel(uint8_t _x, uint8_t _y, uint8_t _color) = 0;
+        virtual uint8_t     GetPixelColor(uint8_t _x, uint8_t _y) const = 0;
+        virtual char**      GetScreen() const = 0;
+        virtual void        SetScreen(char** _vram) = 0;
 };
 
 #endif

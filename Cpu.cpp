@@ -11,7 +11,7 @@ void			dlErrorWrapper(void)
 	exit(-1);
 }
 
-Cpu::Cpu(Config *config) : active(true), _romName("save"), _nbClocks(4), _renderer(NULL), _rendererHandle(NULL), _RendererCreator(NULL), _deleteRenderer(NULL), _input(NULL),  _I(0), _nbJumps(0), _gameCounter(0), _soundCounter(0), _pc(512)
+Cpu::Cpu(Config *config) : active(true), _romName("save"), _nbClocks(4), _renderer(nullptr), _rendererHandle(nullptr), _RendererCreator(nullptr), _deleteRenderer(nullptr), _input(nullptr),  _I(0), _nbJumps(0), _gameCounter(0), _soundCounter(0), _pc(512)
 {
 	unsigned short	i;
 
@@ -124,8 +124,8 @@ Cpu::~Cpu(void)
 
 void			Cpu::saveState(void) const
 {
-	FILE			*state = NULL;
-	char			**vram = NULL;
+	FILE			*state = nullptr;
+	char			**vram = nullptr;
 	unsigned char	i;
 	std::string		fileName(this->_romName + ".sav");
 
@@ -148,7 +148,7 @@ void			Cpu::saveState(void) const
 	fwrite(&this->_mask[0], sizeof(unsigned short) * (NB_OPCODES), 1, state);
 	fwrite(&this->_id[0], sizeof(unsigned short) * (NB_OPCODES), 1, state);
 	//Save screen
-	vram = this->_renderer->getScreen();
+	vram = this->_renderer->GetScreen();
 	if (vram)
 	{
 		for (i = 0; i < 64; i++)
@@ -165,8 +165,8 @@ void			Cpu::saveState(void) const
 
 void			Cpu::loadState(void)
 {
-	FILE			*state = NULL;
-	char			**vram = NULL;
+	FILE			*state = nullptr;
+	char			**vram = nullptr;
 	unsigned char	i;
 	std::string		fileName(this->_romName + ".sav");
 
@@ -176,7 +176,7 @@ void			Cpu::loadState(void)
 		std::cerr << "Error while opening savestate file." << std::endl;
 		return;
 	}
-	this->_renderer->clearScreen();
+	this->_renderer->ClearScreen();
 	//Load RAM
 	fread(&this->_memory[0], sizeof(unsigned char) * (MEM_SIZE), 1, state);
 	//Load CPU
@@ -200,7 +200,7 @@ void			Cpu::loadState(void)
 				std::cerr << "Error while setting a line of screen." << std::endl;
 			fread(vram[i], sizeof(char) * 32, 1, state);
 		}
-		this->_renderer->setScreen(vram);
+		this->_renderer->SetScreen(vram);
 		for (i = 0; i < 64; i++)
 			free(vram[i]);
 		free(vram);
@@ -223,8 +223,8 @@ void			Cpu::setRenderer(const std::string &fileName)
 	this->_rendererHandle = dlopen(fileName.c_str(), RTLD_LAZY | RTLD_LOCAL);
 	if (!this->_rendererHandle)
 		dlErrorWrapper();
-	this->_RendererCreator = (IRender *(*)(void)) dlsym(this->_rendererHandle, "createRenderer");
-	this->_deleteRenderer = (void(*)(IRender *)) dlsym(this->_rendererHandle, "deleteRenderer");
+	this->_RendererCreator = (IRender *(*)(void)) dlsym(this->_rendererHandle, "CreateRenderer");
+	this->_deleteRenderer = (void(*)(IRender *)) dlsym(this->_rendererHandle, "DeleteRenderer");
 	if (!this->_RendererCreator || !this->_deleteRenderer)
 		dlErrorWrapper();
 	this->_renderer = this->_RendererCreator();
@@ -305,13 +305,13 @@ void			Cpu::render(unsigned char b1, unsigned char b2, unsigned char b3)
 			x = (this->_V[b3] + j) % 64; //on calcule l'abscisse, on ne doit pas dépasser l
 			if (((codage) & (0x1 << decalage)) != 0)//on récupère le bit correspondant
 			{
-				if (this->_renderer->getPixelColor(x, y) == WHITE)//le pixel était blanc
+				if (this->_renderer->GetPixelColor(x, y) == 1)//le pixel était blanc
 				{
-					this->_renderer->setPixel(x, y, BLACK);
+					this->_renderer->SetPixel(x, y, 0);
 					this->_V[0xF] = 1; //il y a donc collusion
 				}
 				else
-					this->_renderer->setPixel(x, y, WHITE);
+					this->_renderer->SetPixel(x, y, 1);
 			}
 		}
 	}
@@ -319,7 +319,7 @@ void			Cpu::render(unsigned char b1, unsigned char b2, unsigned char b3)
 
 bool			Cpu::loadROM(const std::string &name)
 {
-	FILE	*rom = NULL;
+	FILE	*rom = nullptr;
 
 	rom = fopen(name.c_str(), "rb");
 	if (!rom)
@@ -336,7 +336,7 @@ bool			Cpu::loadROM(const std::string &name)
 void			Cpu::render(void) const
 {
 	if (this->_renderer)
-		this->_renderer->updateScreen();
+		this->_renderer->UpdateScreen();
 }
 
 unsigned short	Cpu::getNbClocks(void) const
@@ -364,7 +364,7 @@ void			Cpu::_0NNN(unsigned char b1, unsigned char b2, unsigned char b3)
 
 void			Cpu::_00E0(unsigned char b1, unsigned char b2, unsigned char b3)
 {
-	this->_renderer->clearScreen();
+	this->_renderer->ClearScreen();
 }
 
 void			Cpu::_00EE(unsigned char b1, unsigned char b2, unsigned char b3)

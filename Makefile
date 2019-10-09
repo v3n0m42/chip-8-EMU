@@ -22,20 +22,20 @@ SFMLLIBS =	-lsfml-graphics		\
 all: $(LIBGFXSFMLTarget) $(LIBINPUTKBTarget) $(Target)
 
 $(Target): $(OBJ)
-	@g++ $^ -o $@ $(SFMLLIBS) -ldl
-	@echo "\033[1;32mchip8EMU ready !!\033[00m"
+	@clang++ $^ -o $@ $(SFMLLIBS) -ldl
+	@echo "chip8EMU ready"
 
 %.o: %.cpp
-	@echo "\033[1;30mchip8EMU: compiling \033[00m" $<
-	@g++ $(CPPFLAGS) $< -o $@ -c -fPIC
+	@echo "chip8EMU: compiling " $<
+	@clang++ $(CPPFLAGS) $< -o $@ -c -fPIC
 
 $(LIBGFXSFMLTarget): $(GFXSFMLOBJ)
-	@g++ $^ -o $@ -shared -fPIC $(SFMLLIBS)
-	@echo "\033[1;32mlibGFXSFML ready !!\033[00m"
+	@clang++ $^ -o $@ -shared -fPIC $(SFMLLIBS)
+	@echo "libGFXSFML ready"
 
 $(LIBINPUTKBTarget): $(INPUTKBOBJ)
-	@g++ $^ -o $@ -shared -fPIC $(SFMLLIBS)
-	@echo "\033[1;32mlibINPUTKB ready !!\033[00m"
+	@clang++ $^ -o $@ -shared -fPIC $(SFMLLIBS)
+	@echo "libINPUTKB ready"
 
 clean:
 	@$(RM) -f $(OBJ)

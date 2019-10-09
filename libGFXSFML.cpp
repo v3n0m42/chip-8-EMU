@@ -5,146 +5,137 @@
 #include "Config.hpp"
 #include "libGFXSFML.hpp"
 
-SFMLRenderer	*createRenderer()
+////////////////////////////////////////////////////////////////////////////////
+
+SFMLRenderer*   CreateRenderer()
 {
-	return new SFMLRenderer();
+    SFMLRenderer*   renderer = nullptr;
+    if (sf::Shader::isAvailable())
+        renderer = new SFMLRenderer();
+    return renderer;
 }
 
-void			deleteRenderer(SFMLRenderer *renderer)
+////////////////////////////////////////////////////////////////////////////////
+
+void    DeleteRenderer(SFMLRenderer* _renderer)
 {
-	delete renderer;
+    delete _renderer;
 }
 
-SFMLRenderer::SFMLRenderer(void) : _displayFPS(false), _window(NULL), _fps(60), _pixelSize(8), _width(512), _height(256), _whiteSprites(NULL), _whitePixel(NULL), _windowTitle(WINDOW_TITLE)
+////////////////////////////////////////////////////////////////////////////////
+
+SFMLRenderer::SFMLRenderer()
 {
-	unsigned short	x, y;
-	Config			config("libGFXSFML.cfg");
+    Config  config("libGFXSFML.cfg");
 
-	//Load Config
-	x = config.getUShort("DISPLAY_FPS", 0);
-	if (x == 1)
-		this->_displayFPS = true;
-	this->_fps = config.getUShort("FPS", 60);
-	this->_pixelSize = config.getUShort("PIXEL_SIZE", 8);
-	this->_width = this->_pixelSize * 64;
-	this->_height = this->_pixelSize * 32;
+    //Load Config
+    m_displayFPS = (config.getUShort("DISPLAY_FPS", 0) == 1);
+    m_fps = config.getUShort("FPS", 60);
+    m_pixelSize = config.getUShort("PIXEL_SIZE", 8);
+    m_width = m_pixelSize * 64;
+    m_height = m_pixelSize * 32;
 
-	//Init pixels of virtual screen
-	for (x = 0; x < 64; x++)
-		for (y = 0; y < 32; y++)
-			this->_pixels[x][y] = BLACK;
+    //Init pixels of virtual screen
+    memset(m_pixels, 0, s_renderTargetSize);
 
-	//Init Screen
-	this->_window = new sf::RenderWindow(sf::VideoMode(this->_width, this->_height), WINDOW_TITLE);
-	this->_window->setVerticalSyncEnabled(true);
-	this->_window->setFramerateLimit(this->_fps);
+    //Init render target
+    m_renderTargetTexture.create(64, 32);
+    m_renderTargetSprite.setTexture(m_renderTargetTexture);
+    m_renderTargetSprite.setScale(m_pixelSize, m_pixelSize);
 
-	//Init Sprites
-	this->_whitePixel = new sf::Uint8[this->_pixelSize * this->_pixelSize * 4];
+    //Init Screen
+    m_window = new sf::RenderWindow(sf::VideoMode(m_width, m_height), WINDOW_TITLE);
+    m_window->setVerticalSyncEnabled(true);
+    m_window->setFramerateLimit(m_fps);
 
-	//Init Pixels
-	for (x = 0; x < (this->_pixelSize * this->_pixelSize * 4); x += 4)
-	{
-		this->_whitePixel[x] = 255;
-		this->_whitePixel[x + 1] = 255;
-		this->_whitePixel[x + 2] = 255;
-		this->_whitePixel[x + 3] = 255;
-	}
-	this->_white.create(this->_pixelSize, this->_pixelSize);
-	this->_white.update(this->_whitePixel);
-
-	this->_whiteSprites = new sf::Sprite*[64];
-	for (x = 0; x < 64; x++)
-	{
-		this->_whiteSprites[x] = new sf::Sprite[32];
-		for (y = 0; y < 32; y++)
-		{
-			this->_whiteSprites[x][y].setTexture(this->_white);
-			this->_whiteSprites[x][y].setPosition(float(x * this->_pixelSize), float(y * this->_pixelSize));
-		}
-	}
-	this->_clock.restart();
+    m_clock.restart();
 }
 
-SFMLRenderer::~SFMLRenderer(void)
+////////////////////////////////////////////////////////////////////////////////
+
+SFMLRenderer::~SFMLRenderer()
 {
-	this->_window->close();
-	delete [] this->_whiteSprites;
-	delete [] this->_whitePixel;
+    m_window->close();
 }
 
-char			**SFMLRenderer::getScreen(void) const
-{
-	char			**screen = NULL;
-	unsigned char	i;
+////////////////////////////////////////////////////////////////////////////////
 
-	screen = (char **)malloc(sizeof(char *) * 64);
+char**  SFMLRenderer::GetScreen() const
+{
+    //NOCOMMIT
+	/*char** const screen = (char **)malloc(sizeof(char *) * 64);
 	if (!screen)
-		return NULL;
-	for (i = 0; i < 64; i++)
+		return nullptr;
+	for (uint8_t i = 0; i < 64; i++)
 	{
 		screen[i] = (char *)malloc(sizeof(char) * 32);
 		if (!screen[i])
-			return NULL;
-		memcpy(screen[i], this->_pixels[i], 32);
+			return nullptr;
+		memcpy(screen[i], m_pixels[i], 32);
 	}
-	return screen;
+	return screen;*/
+    return nullptr;
 }
 
-void			SFMLRenderer::setScreen(char **vram)
+////////////////////////////////////////////////////////////////////////////////
+
+void    SFMLRenderer::SetScreen(char** _vram)
 {
-	unsigned char	i;
-
-	for (i = 0; i < 64; i++)
-		memcpy(this->_pixels[i], vram[i], 32);
+    memcpy(m_pixels, _vram, s_renderTargetSize);
 }
 
-void			SFMLRenderer::drawPixel(unsigned char x, unsigned char y)
+////////////////////////////////////////////////////////////////////////////////
+
+void    SFMLRenderer::ClearScreen()
 {
-	if (this->_pixels[x][y] == BLACK)
-		return;
-	this->_window->draw(this->_whiteSprites[x][y]);
+    memset(m_pixels, 0, s_renderTargetSize);
+    m_window->clear(sf::Color::Black);
+    m_window->display();
 }
 
-void			SFMLRenderer::clearScreen(void)
+////////////////////////////////////////////////////////////////////////////////
+
+void    SFMLRenderer::UpdateScreen()
 {
-	unsigned char	x, y;
+    m_window->clear(sf::Color::Black);
+    m_renderTargetTexture.update(m_pixels);
+    m_window->draw(m_renderTargetSprite);
+    m_window->display();
 
-	for (x = 0; x < 64; x++)
-		for (y = 0; y < 32; y++)
-			this->_pixels[x][y] = BLACK;
-	this->_window->clear(sf::Color::Black);
-	this->_window->display();
+    if (m_displayFPS)
+    {
+        std::string         title(m_windowTitle);
+        const sf::Time      elapsed = m_clock.getElapsedTime();
+        std::stringstream   ss;
+        ss << 1000 / elapsed.asMilliseconds();
+        std::string   strTime(ss.str());
+        m_window->setTitle(title + " - " + strTime + " FPS");
+    }
+
+    m_clock.restart();
 }
 
-void			SFMLRenderer::updateScreen(void)
+////////////////////////////////////////////////////////////////////////////////
+
+void    SFMLRenderer::SetPixel(uint8_t _x, uint8_t _y, uint8_t _color)
 {
-	unsigned char		x, y;
-	std::stringstream	ss;
-	sf::Time			elapsed;
-
-	this->_window->clear(sf::Color::Black);
-	for (x = 0; x < 64; x++)
-		for (y = 0; y < 32; y++)
-			this->drawPixel(x, y);
-	this->_window->display();
-	if (this->_displayFPS)
-	{
-		std::string		title(this->_windowTitle);
-		elapsed = this->_clock.getElapsedTime();
-		ss << 1000 / elapsed.asMilliseconds();
-		std::string		strTime(ss.str());
-		this->_window->setTitle(title + " - " + strTime + " FPS");
-	}
-	this->_clock.restart();
+    const uint16_t   flatArrayIndex = GetFlatArrayIndex(_x, _y);
+    memset(m_pixels + flatArrayIndex, _color * 255, s_componentsPerPixel);
 }
 
-void			SFMLRenderer::setPixel(unsigned char x, unsigned char y, unsigned char color)
+////////////////////////////////////////////////////////////////////////////////
+
+uint8_t SFMLRenderer::GetPixelColor(uint8_t _x, uint8_t _y) const
 {
-	this->_pixels[x][y] = color;
+    const uint16_t   flatArrayIndex = GetFlatArrayIndex(_x, _y);
+    return m_pixels[flatArrayIndex] / 255;
 }
 
-unsigned char	SFMLRenderer::getPixelColor(unsigned char x, unsigned char y) const
+////////////////////////////////////////////////////////////////////////////////
+
+inline constexpr uint16_t    SFMLRenderer::GetFlatArrayIndex(uint8_t _x, uint8_t _y) const
 {
-	return this->_pixels[x][y];
+    return ((64 * _y) + _x) * s_componentsPerPixel;
 }
+
+////////////////////////////////////////////////////////////////////////////////
